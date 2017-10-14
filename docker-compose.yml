@@ -1,0 +1,45 @@
+version: '2'
+
+volumes:
+  postgres_data: {}
+  postgres_backup: {}
+  nginx_tls: {}
+
+services:
+  postgres:
+    build: ./docker/postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_backup:/backups
+    environment:
+    - POSTGRES_DB=agentless
+    - POSTGRES_USER=agentless
+    - POSTGRES_PASSWORD=agentless
+    restart: always
+
+  flask:
+    build:
+      context: .
+      dockerfile: ./docker/flask/Dockerfile
+    depends_on:
+      - postgres
+      - redis
+    command: /gunicorn.sh
+    environment:
+    - POSTGRES_USER=agentless
+    - POSTGRES_PASSWORD=agentless
+    - DATABASE_URI=postgres://agentless:agentless@postgres/agentless
+    - RESULT_BACKEND=redis://redis/
+    - QUEUE_BACKEND=redis://redis/
+    restart: always
+
+  nginx:
+    build: ./docker/nginx
+    volumes:
+      - nginx_tls:/etc/nginx/external/
+    depends_on:
+      - flask
+      - prometheus
+    ports:
+      - "0.0.0.0:443:443"
+    restart: always
