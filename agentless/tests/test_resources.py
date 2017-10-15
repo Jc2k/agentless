@@ -3,7 +3,7 @@ import json
 import base64
 
 from agentless.app import app, db
-
+from agentless.models import PrivateKey
 
 class TestCase(unittest.TestCase):
 
@@ -77,3 +77,6 @@ class TestCase(unittest.TestCase):
 
         signature = base64.b64decode(payload['signature'])
         assert isinstance(signature, bytes)
+
+        private_key = PrivateKey.query.filter(PrivateKey.name == 'my-test-key').first()
+        assert signature == private_key.sign(b'hello')
