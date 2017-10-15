@@ -9,8 +9,8 @@ RUN pip install -r /requirements.txt /app/wheels/*.whl
 
 COPY . /app/src
 
-COPY ./compose/flask/gunicorn.sh /gunicorn.sh
-COPY ./compose/flask/entrypoint.sh /entrypoint.sh
+COPY ./docker/flask/gunicorn.sh /gunicorn.sh
+COPY ./docker/flask/entrypoint.sh /entrypoint.sh
 
 RUN sed -i 's/\r//' /entrypoint.sh \
     && sed -i 's/\r//' /gunicorn.sh \

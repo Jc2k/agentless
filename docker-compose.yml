@@ -25,6 +25,7 @@ services:
       - postgres
       - redis
     command: /gunicorn.sh
+    user: flask
     environment:
     - POSTGRES_USER=agentless
     - POSTGRES_PASSWORD=agentless

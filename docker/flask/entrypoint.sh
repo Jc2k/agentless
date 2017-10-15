@@ -33,4 +33,4 @@ until postgres_ready; do
 done
 
 >&2 echo "Postgres is up - continuing..."
-exec gosu flask $cmd
+exec $cmd
