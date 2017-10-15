@@ -2,6 +2,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import serialization
 
 backend = default_backend()
 
@@ -21,8 +22,8 @@ def generate_private_key():
 
 
 def load_private_key(private_key_pem):
-    return serialization.load_der_private_key(
-        private_key.private_key,
+    return serialization.load_pem_private_key(
+        private_key_pem,
         password=None,
         backend=backend,
     )
@@ -37,7 +38,7 @@ def public_key_from_private_key(private_key):
 
 
 def ssh_sign_data(key, data):
-    sig = key.sign(
+    return key.sign(
         data,
         padding=padding.PKCS1v15(),
         algorithm=hashes.SHA1(),

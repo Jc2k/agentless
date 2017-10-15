@@ -26,7 +26,7 @@ class PrivateKey(db.Model):
         return crypto.public_key_from_private_key(self.pkey)
 
     def sign(self, data):
-        return crypto.sign(self.pkey, data)
+        return crypto.ssh_sign_data(self.pkey, data)
 
     def __repr__(self):
         return f'<PrivateKey {self.name!r}>'
