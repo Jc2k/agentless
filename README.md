@@ -1,18 +1,21 @@
 # AGENTLESS
 
-A simple microservice that allows:
+This codebase implements ssh-agent as a microservice. This simple codebase allows the use of an SSH key without an end user possessing its private key. This might be useful if:
 
- * an SSH key to be shared but without comprising it
- * all use of an SSH key to be audit logged
+ * You have devops / CD deployment tooling and don't really want to commit private keys alongside the configuration for them.
 
-Access to the private key can be revoked by blocking access to this service.
+ * You want to capture an audit event every time a private key is used
+
+ * You want to store private keys for some systems in a more secure environment (different physical security, use of HSM or other hardware crypto, etc) and provide restricted access to them.
+
+ * You have shared cloud infrastructure where each user doesn't have their own account
 
 **WARNING**: Don't use this when multiple user accounts with multiple SSH keys is more appropriate - which is most of the time!!
 
 
 # How
 
-agentless works by providing an API for generating SSH private keys and the same API that an SSH Agent would provide. It is effectively an SSH Agent on the network, but where the user of the SSH key has no access to the underlying private key.
+The user installs a client which implements the ssh agent protocol. This client listens on a unix socket and forwards any authentication challenges to agentless via the `/api/v1/keys/1/sign` endpoint. The local ssh agent client has no access to the secret material.
 
 
 # Background
