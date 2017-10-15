@@ -15,7 +15,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///app.db')
 
 handler = logging.StreamHandler()
-handler.setLevel(logging.INFO)
+handler.setLevel(logging.DEBUG)
 app.logger.addHandler(handler)
 
 CORS(app, resources={r'/api/*': {'origins': '*', 'expose_headers': 'Content-Range'}})

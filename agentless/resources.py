@@ -1,3 +1,5 @@
+import base64
+
 from flask import jsonify, request
 from flask_restful import Resource, abort, fields, marshal, reqparse
 
@@ -67,16 +69,19 @@ class PrivateKeysResource(Resource):
         return jsonify(marshal(private_key, private_key_fields))
 
 
-@app.route('/keys/<key_id>/sign')
+@app.route('/api/v1/keys/<int:key_id>/sign', methods=['POST'])
 def sign_data(key_id):
-    private_key = PrivateKey.query.filter(PrivateKey.id == private_key_id).first()
+    private_key = PrivateKey.query.filter(PrivateKey.id == key_id).first()
     if not private_key:
-        abort(404, message=f'private_key {private_key_id} does not exist')
+        abort(404, message=f'private_key {key_id} does not exist')
 
     parser = reqparse.RequestParser()
     parser.add_argument('data', type=str, location='json', required=True)
+    args = parser.parse_args()
 
-    return jsonify({'signature': private_key.sign(args['data'])})
+    signature = base64.b64encode(private_key.sign(base64.b64decode(args['data']))).decode('utf-8')
+
+    return jsonify({'signature': signature})
 
 
 api.add_resource(PrivateKeysResource, '/keys')

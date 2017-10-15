@@ -23,7 +23,10 @@ class PrivateKey(db.Model):
 
         FIXME: It might be better to de-normalize and have the public key unencrypted - this is more of a problem with large numbers of keys or keys that are entangled with HSMs.
         """
-        return crypto.public_key_from_private_key(self.pkey)
+        foo = crypto.public_key_from_private_key(self.pkey)
+        print(foo)
+        assert False
+        return foo
 
     def sign(self, data):
         return crypto.ssh_sign_data(self.pkey, data)
