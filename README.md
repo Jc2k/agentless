@@ -1,21 +1,35 @@
 # AGENTLESS
 
-This codebase implements ssh-agent as a microservice. This simple codebase allows the use of an SSH key without an end user possessing its private key. This might be useful if:
+This codebase implements ssh-agent as a bare bones microservice. This simple codebase allows the use of an SSH key without an end user possessing its private key. This might be useful if:
 
- * You have devops / CD deployment tooling and don't really want to commit private keys alongside the configuration for them.
+ * You want to reduce the number of machines that hold a copy of your private key material
+
+ * You don't want a compromised desktop developer machine to compromise private key material
+
+ * You want to perform additional or non-standard authentication of a user before allowing a key to be used - for example you can require a valid TOTP code. This effectively gives you 2FA without having to install extra PAM modules on your entire fleet of machines and without needed to do LDAP 2FA.
+
+ * You have devops / CD deployment tooling and don't really want to commit private keys alongside the configuration for them. (Good doggo).
 
  * You want to capture an audit event every time a private key is used
 
  * You want to store private keys for some systems in a more secure environment (different physical security, use of HSM or other hardware crypto, etc) and provide restricted access to them.
 
+ * You want to reduce the likelihood of criticial private key material from been exfiltrated.
+
  * You have shared cloud infrastructure where each user doesn't have their own account
 
-**WARNING**: Don't use this when multiple user accounts with multiple SSH keys is more appropriate - which is most of the time!!
+You will probably have to customize it for your environment - a lot of these ideas are left to the reader (for now).
+
+**WARNING**: Don't use this when multiple user accounts with multiple SSH keys is more appropriate. It's not a replacement for a good LDAP deployment.
 
 
 # How
 
-The user installs a client which implements the ssh agent protocol. This client listens on a unix socket and forwards any authentication challenges to agentless via the `/api/v1/keys/1/sign` endpoint. The local ssh agent client has no access to the secret material.
+The ssh-agent protocol is simply an API that allows listing the public keys that are available to participate in authentication and an API for signing challenge payloads. By signing a payload from the host with the private portion of a key it knows about (in `~/.ssh/authorized_keys`) it knows you are who you say you are.
+
+But there is no reason why this has to happen on your machine. If you are suitably authenticated by other means then it's actually nicer to be physically seperated from the private key material.
+
+With agentless, the user installs a client which implements the ssh agent protocol. This client listens on a unix socket and forwards any authentication challenges to agentless via the `/api/v1/keys/1/sign` endpoint. This means the local ssh agent client has no access to the secret material.
 
 
 # Background
