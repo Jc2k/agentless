@@ -10,7 +10,6 @@ from flask_restful import Api
 from flask_script import Manager
 from flask_sqlalchemy import SQLAlchemy
 
-
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URI', 'sqlite:///app.db')
 

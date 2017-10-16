@@ -4,7 +4,7 @@ from flask import jsonify, request
 from flask_restful import Resource, abort, fields, marshal, reqparse
 
 from agentless import crypto
-from agentless.app import app, api, db
+from agentless.app import api, app, db
 from agentless.models import PrivateKey
 from agentless.simplerest import build_response_for_request
 

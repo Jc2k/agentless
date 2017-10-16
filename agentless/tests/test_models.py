@@ -3,8 +3,8 @@ import unittest
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
-from agentless.models import PrivateKey
 from agentless.crypto import generate_private_key
+from agentless.models import PrivateKey
 
 
 class TestModel(unittest.TestCase):

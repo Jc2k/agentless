@@ -1,5 +1,5 @@
-from agentless.app import db
 from agentless import crypto
+from agentless.app import db
 
 
 class PrivateKey(db.Model):
@@ -21,7 +21,9 @@ class PrivateKey(db.Model):
         """
         Returns the public portion of the key pair in OpenSSH format.
 
-        FIXME: It might be better to de-normalize and have the public key unencrypted - this is more of a problem with large numbers of keys or keys that are entangled with HSMs.
+        FIXME: It might be better to de-normalize and have the public key
+        unencrypted - this is more of a problem with large numbers of keys
+        or keys that are entangled with HSMs.
         """
         foo = crypto.public_key_from_private_key(self.pkey)
         print(foo)

@@ -1,9 +1,10 @@
-import unittest
-import json
 import base64
+import json
+import unittest
 
 from agentless.app import app, db
 from agentless.models import PrivateKey
+
 
 class TestCase(unittest.TestCase):
 
@@ -36,7 +37,7 @@ class TestCase(unittest.TestCase):
 
         assert isinstance(payload, dict)
         assert payload['name'] == 'my-test-key'
-        #assert payload['public_key'].startswith('AAA')
+        # assert payload['public_key'].startswith('AAA')
 
     def test_get_keys_1_key(self):
         response = self.client.post(
