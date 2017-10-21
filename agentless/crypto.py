@@ -16,7 +16,7 @@ def generate_private_key():
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.TraditionalOpenSSL,
         encryption_algorithm=serialization.NoEncryption(),
-    )
+    ).decode('utf-8')
 
 
 def load_private_key(private_key_pem):
@@ -29,11 +29,11 @@ def load_private_key(private_key_pem):
 
 def public_key_from_private_key(private_key):
     public_key = private_key.public_key()
-    return public_key.pulic_bytes(
+    foo = public_key.public_bytes(
         encoding=serialization.Encoding.OpenSSH,
         format=serialization.PublicFormat.OpenSSH,
-    )
-
+    ).decode('utf-8')
+    return foo
 
 def ssh_sign_data(key, data):
     return key.sign(

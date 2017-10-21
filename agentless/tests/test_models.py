@@ -9,6 +9,12 @@ from agentless.models import PrivateKey
 
 class TestModel(unittest.TestCase):
 
+    def test_public_key(self):
+        private_key = PrivateKey(name='my-test-key', private_key=generate_private_key())
+        public_key = private_key.public_key
+        assert isinstance(public_key, str)
+        assert public_key.startswith('ssh-rsa ')
+
     def test_sign(self):
         private_key = PrivateKey(name='my-test-key', private_key=generate_private_key())
         data = b"hello world"

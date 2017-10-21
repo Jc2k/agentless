@@ -14,7 +14,7 @@ class PrivateKey(db.Model):
 
     @property
     def pkey(self):
-        return crypto.load_private_key(self.private_key)
+        return crypto.load_private_key(self.private_key.encode('utf-8'))
 
     @property
     def public_key(self):
@@ -26,8 +26,6 @@ class PrivateKey(db.Model):
         or keys that are entangled with HSMs.
         """
         foo = crypto.public_key_from_private_key(self.pkey)
-        print(foo)
-        assert False
         return foo
 
     def sign(self, data):
