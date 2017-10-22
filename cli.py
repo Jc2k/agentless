@@ -1,7 +1,9 @@
+import argparse
 import base64
 import os
 import socketserver
 import struct
+import sys
 import threading
 import tempfile
 import time
@@ -154,7 +156,11 @@ class AgentServer(socketserver.ThreadingUnixStreamServer):
         self.server_close()
 
 
-def run():
+def run(argv=None):
+    parser = argparse.ArgumentParser(description="Agentless SSH Wrapper")
+    parser.add_argument('--identity', '-i', action='append')
+    args, unknown_args = parser.parse_known_args(argv or sys.argv[1:])
+
     environ = os.environ.copy()
 
     socket_dir = tempfile.mkdtemp(prefix='ssh-')
@@ -182,7 +188,7 @@ def run():
     while not os.path.exists(socket_file):
         time.sleep(0.5)
 
-    cmd = ["ssh", "-vvv", "localhost"]
+    cmd = ["ssh"] + unknown_args
     os.execvpe(cmd[0], cmd, environ)
 
 
