@@ -61,6 +61,13 @@ class AgentHandler(socketserver.BaseRequestHandler):
 
     def handler_11(self, msg):
         # SSH2_AGENTC_REQUEST_IDENTITIES = 11
+
+        response = requests.get('http://localhost:8000/api/v1/keys').json()
+        for key in response:
+            key_type, key_body = key['public_key'].split(' ')
+            decoded_body = base64.b64decode(key_body)
+            self.server.add(decoded_body, key['name'], key['id'])
+
         message = []
         message.append(_write_byte(SSH2_AGENT_IDENTITIES_ANSWER))
         message.append(_write_int(len(self.server.identities)))
@@ -172,12 +179,6 @@ def run(argv=None):
     child_pid = os.fork()
     if child_pid:
         a = AgentServer(socket_file)
-
-        response = requests.get('http://localhost:8000/api/v1/keys').json()
-        for key in response:
-            key_type, key_body = key['public_key'].split(' ')
-            decoded_body = base64.b64decode(key_body)
-            a.add(decoded_body, key['name'], key['id'])
 
         try:
             a.serve_while_pid(child_pid)
