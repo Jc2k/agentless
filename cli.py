@@ -1,13 +1,19 @@
+import base64
 import os
 import socketserver
 import struct
 import threading
+import tempfile
+import time
+import shutil
+
+import requests
 
 
-SSH_AGENT_FAILURE = 5
-SSH_AGENT_SUCCESS = 6
-SSH2_AGENT_IDENTITIES_ANSWER = 12
-SSH2_AGENT_SIGN_RESPONSE = 14
+SSH_AGENT_FAILURE = struct.pack('B', 5)
+SSH_AGENT_SUCCESS = struct.pack('B', 6)
+SSH2_AGENT_IDENTITIES_ANSWER = struct.pack('B', 12)
+SSH2_AGENT_SIGN_RESPONSE = struct.pack('B', 14)
 
 
 def _write_byte(data):
@@ -54,11 +60,11 @@ class AgentHandler(socketserver.BaseRequestHandler):
     def handler_11(self, msg):
         # SSH2_AGENTC_REQUEST_IDENTITIES = 11
         message = []
-        message.append(_write_string(byte_chr(SSH2_AGENT_IDENTITIES_ANSWER)))
+        message.append(_write_byte(SSH2_AGENT_IDENTITIES_ANSWER))
         message.append(_write_int(len(self.server.identities)))
-        for pkey, comment in self.server.identities.values():
-            message.append(_write_string(pkey.asbytes())
-            message.append(_write_string(comment)
+        for pkey, metadata in self.server.identities.items():
+            message.append(_write_string(pkey))
+            message.append(_write_string(metadata['comment'].encode('utf-8')))
         return b''.join(message)
 
     def handler_13(self, msg):
@@ -67,14 +73,24 @@ class AgentHandler(socketserver.BaseRequestHandler):
         data, msg = _read_string(msg)
         someint, msg = _read_int(msg)
 
-        pkey, comment = self.server.identities.get(identity, (None, None))
+        metadata = self.server.identities.get(identity, None)
+        if not metadata:
+            return _write_byte(SSH_AGENT_FAILURE)
 
-        if not pkey:
-            return _write_byte(byte_chr(SSH_AGENT_FAILURE))
+        print("Agentless: Will sign request with key {id} ({comment})".format(**metadata))
+
+        response = requests.post(
+            'http://localhost:8000/api/v1/keys/{}/sign'.format(metadata['id']),
+            json={'data': base64.b64encode(data).decode('utf-8')}
+        )
+
+        sig = base64.b64decode(response.json()['signature'])
 
         return b''.join((
-            _write_byte(byte_chr(SSH2_AGENT_SIGN_RESPONSE)),
-            _write_string(pkey.sign_ssh_data(data).asbytes())
+            _write_byte(SSH2_AGENT_SIGN_RESPONSE),
+            _write_string(
+                _write_string(b'ssh-rsa') + _write_string(sig)
+            )
         ))
 
     def _read(self, wanted):
@@ -87,10 +103,10 @@ class AgentHandler(socketserver.BaseRequestHandler):
         return result
 
     def read_message(self):
-        size = _read_int(self._read(4))
+        size, _ = _read_int(self._read(4))
         msg = self._read(size)
         msgtype, msg = _read_byte(msg)
-        return ord(msgtype), msg
+        return msgtype, msg
 
     def handle(self):
         while True:
@@ -103,17 +119,22 @@ class AgentHandler(socketserver.BaseRequestHandler):
             if not handler:
                 continue
 
-            self.request.sendall(_write_string(handler(msg)))
+            response = _write_string(handler(msg))
+            # print(response)
+            self.request.sendall(response)
 
 
-class PosixAgentServer(socketserver.ThreadingUnixStreamServer):
+class AgentServer(socketserver.ThreadingUnixStreamServer):
 
     def __init__(self, socket_file):
-        socketserver.ThreadingUnixStreamServer.__init__(self, socket_file, PosixAgentHandler)
+        socketserver.ThreadingUnixStreamServer.__init__(self, socket_file, AgentHandler)
         self.identities = {}
 
-    def add(self, pkey, comment):
-        self.identities[pkey.asbytes()] = (pkey, comment)
+    def add(self, pkey, comment, id):
+        self.identities[pkey] = {
+            'comment': comment,
+            'id': id,
+        }
 
     def serve_while_pid(self, pid):
         self.listen_start()
@@ -144,9 +165,13 @@ def run():
 
     child_pid = os.fork()
     if child_pid:
-        a = PosixAgentServer(socket_file)
+        a = AgentServer(socket_file)
 
-        # a.add(identity_bytes, comment)
+        response = requests.get('http://localhost:8000/api/v1/keys').json()
+        for key in response:
+            key_type, key_body = key['public_key'].split(' ')
+            decoded_body = base64.b64decode(key_body)
+            a.add(decoded_body, key['name'], key['id'])
 
         try:
             a.serve_while_pid(child_pid)
@@ -157,4 +182,9 @@ def run():
     while not os.path.exists(socket_file):
         time.sleep(0.5)
 
+    cmd = ["ssh", "-vvv", "localhost"]
     os.execvpe(cmd[0], cmd, environ)
+
+
+if __name__ == "__main__":
+    run()
