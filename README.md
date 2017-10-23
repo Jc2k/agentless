@@ -23,6 +23,50 @@ You will probably have to customize it for your environment - a lot of these ide
 **WARNING**: Don't use this when multiple user accounts with multiple SSH keys is more appropriate. It's not a replacement for a good LDAP deployment.
 
 
+## Dev Environment
+
+You can get a simple dev environment with Docker and docker-compose. Dev happens on macOS with Docker for Mac:
+
+```
+$ docker-compose -f dev.yml build
+$ docker-compose -f dev.yml up
+```
+
+This will automatically run any migrations.
+
+You can run tests with:
+
+```
+$ docker-compose -f dev.yml run --rm flask py.test agentless/
+```
+
+And run flake8 with:
+
+```
+$ docker-compose -f dev.yml run --rm flask flake8 agentless/
+```
+
+You can generate a private key and get the public key with curl:
+
+```
+$ curl -X POST -H "applicaton/json" -d '{"name": "example"}' https://localhost:8000/api/v1/keys
+```
+
+You can use it with your normal SSH client with the `cli.py` wrapper:
+
+```
+./cli.py myuser@myserver.org
+```
+
+This will:
+
+ * Start an SSH agent running locally
+ * Update the environment so that subprocesses can see that agent
+ * Start SSH
+ * Wait for SSH to finish
+ * Ensure the SSH agent is cleaned up
+
+
 ## How
 
 The ssh-agent protocol is simply an API that allows listing the public keys that are available to participate in authentication and an API for signing challenge payloads. By signing a payload from the host with the private portion of a key it knows about (in `~/.ssh/authorized_keys`) it knows you are who you say you are.
@@ -42,27 +86,3 @@ In [Touchdown](https://github.com/yaybu/touchdown) 0.2.0 back in 2015 we added a
 Touchdown could use a mixture of GPG encryption and Amazon KMS - and these could be stacked.
 
 However ultimately the secrets did exist in an unprotected form. If a user was able to run Touchdown then they could extract the secrets and abuse them outside of any Touchdown controls.
-
-
-## Dev Environment
-
-You can get a simple dev environment with Docker and docker-compose. Dev happens on macOS with Docker for Mac:
-
-```
-docker-compose -f dev.yml build
-docker-compose -f dev.yml up
-```
-
-This will automatically run any migrations.
-
-You can run tests with:
-
-```
-docker-compose -f dev.yml run --rm flask py.test agentless/
-```
-
-And run flake8 with:
-
-```
-docker-compose -f dev.yml run --rm flask flake8 agentless/
-```
