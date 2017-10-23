@@ -67,6 +67,60 @@ This will:
  * Ensure the SSH agent is cleaned up
 
 
+You can use it in Paramiko too:
+
+```
+import base64
+import struct
+
+import requests
+
+from paramiko.pkey import PKey
+
+
+def _write_int(data):
+    return struct.pack(">I", data)
+
+
+def _write_string(data):
+    return _write_int(len(data)) + data
+
+
+class AgentKey(PKey):
+
+    def __init__(self, key_id):
+        self.key_id = key_id
+        self.agent = agent
+        self.blob = blob
+        self.public_blob = None
+        self.name = Message(blob).get_text()
+
+    def asbytes(self):
+        resp = requests.get(f"http://localhost:8000/api/v1/keys/{self.key_id}").json()
+        key_type, key_body = resp['public_key'].split(' ')
+        decoded_body = base64.b64decode(key_body)
+        return decoded_body
+
+    def __str__(self):
+        return self.asbytes()
+
+    def get_name(self):
+        return "Remote key"
+
+    def sign_ssh_data(self, data):
+        response = requests.post(
+            f'http://localhost:8000/api/v1/keys/{self.key_id}/sign',
+            json={'data': base64.b64encode(data).decode('utf-8')}
+        )
+
+        sig = base64.b64decode(response.json()['signature'])
+
+        return _write_string(
+            _write_string(b'ssh-rsa') + _write_string(sig)
+        )
+```
+
+
 ## How
 
 The ssh-agent protocol is simply an API that allows listing the public keys that are available to participate in authentication and an API for signing challenge payloads. By signing a payload from the host with the private portion of a key it knows about (in `~/.ssh/authorized_keys`) it knows you are who you say you are.
