@@ -1,10 +1,31 @@
 version: '2'
 
 volumes:
+  microauth_postgres_data_dev: {}
   postgres_data_dev: {}
   postgres_backup_dev: {}
 
 services:
+  microauth_postgres:
+    build: ./docker/postgres
+    volumes:
+      - microauth_postgres_data_dev:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=microauth
+      - POSTGRES_PASSWORD=microauth
+      - POSTGRES_DB=microauth
+
+  microauth:
+    image: jc2k/microauth:dev
+    depends_on:
+      - microauth_postgres
+    command: /gunicorn.sh
+    user: flask
+    environment:
+    - POSTGRES_USER=microauth
+    - POSTGRES_PASSWORD=microauth
+    - POSTGRES_HOST=microauth_postgres
+
   postgres:
     build: ./docker/postgres
     volumes:
