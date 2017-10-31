@@ -1,9 +1,9 @@
 import os
 from urllib.parse import urljoin
 
+import requests
 from flask import request
 from flask_restful import abort
-import requests
 from requests.exceptions import RequestException
 
 from .app import app
@@ -56,7 +56,7 @@ def authorize_with_microauth(action, resource):
         print(response.content)
         response_json = response.json()
 
-    if response_json['Authorized'] != True:
+    if response_json['Authorized'] is not True:
         abort(401)
 
     return response_json

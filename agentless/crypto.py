@@ -35,6 +35,7 @@ def public_key_from_private_key(private_key):
     ).decode('utf-8')
     return foo
 
+
 def ssh_sign_data(key, data):
     return key.sign(
         data,
