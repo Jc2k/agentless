@@ -5,6 +5,7 @@ from flask_restful import Resource, abort, fields, marshal, reqparse
 
 from agentless import crypto
 from agentless.app import api, app, db
+from agentless.auth import authorize
 from agentless.models import PrivateKey
 from agentless.simplerest import build_response_for_request
 
@@ -20,18 +21,22 @@ private_key_parser.add_argument('name', type=str, location='json', required=True
 
 class PrivateKeyResource(Resource):
 
-    def _get_or_404(self, private_key_id):
-        private_key = PrivateKey.query.filter(PrivateKey.id == private_key_id).first()
+    def _get_or_404(self, key_id):
+        private_key = PrivateKey.query.filter(PrivateKey.id == key_id).first()
         if not private_key:
-            abort(404, message=f'private_key {private_key_id} does not exist')
+            abort(404, message=f'private_key {key_id} does not exist')
         return private_key
 
-    def get(self, private_key_id):
-        private_key = self._get_or_404(private_key_id)
+    def get(self, key_id):
+        authorize('GetKey', key_id)
+
+        private_key = self._get_or_404(key_id)
         return jsonify(marshal(private_key, private_key_fields))
 
-    def put(self, private_key_id):
-        private_key = self._get_or_404(private_key_id)
+    def put(self, key_id):
+        authorize('UpdateKey', key_id)
+
+        private_key = self._get_or_404(key_id)
 
         args = private_key_parser.parse_args()
 
@@ -43,8 +48,10 @@ class PrivateKeyResource(Resource):
 
         return jsonify(marshal(private_key, private_key_fields))
 
-    def delete(self, private_key_id):
-        private_key = self._get_or_404(private_key_id)
+    def delete(self, key_id):
+        authorize('DeleteKey', key_id)
+
+        private_key = self._get_or_404(key_id)
         db.session.delete(private_key)
 
         return '{}', 201
@@ -57,6 +64,8 @@ class PrivateKeysResource(Resource):
 
     def post(self):
         args = private_key_parser.parse_args()
+
+        authorize('CreateKey', args['name'])
 
         private_key = PrivateKey(
             name=args['name'],
@@ -71,6 +80,8 @@ class PrivateKeysResource(Resource):
 
 @app.route('/api/v1/keys/<int:key_id>/sign', methods=['POST'])
 def sign_data(key_id):
+    authorize('SignData', key_id)
+
     private_key = PrivateKey.query.filter(PrivateKey.id == key_id).first()
     if not private_key:
         abort(404, message=f'private_key {key_id} does not exist')

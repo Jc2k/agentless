@@ -30,8 +30,8 @@ services:
     - POSTGRES_USER=agentless
     - POSTGRES_PASSWORD=agentless
     - DATABASE_URI=postgres://agentless:agentless@postgres/agentless
-    - RESULT_BACKEND=redis://redis/
-    - QUEUE_BACKEND=redis://redis/
+    - MICROAUTH_ACCESS_KEY_ID=gatekeeper
+    - MICROAUTH_SECRET_ACCESS_KEY=keymater
     restart: always
 
   nginx:
