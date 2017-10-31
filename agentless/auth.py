@@ -1,4 +1,6 @@
 import os
+from urllib.parse import urljoin
+
 from flask import request
 from flask_restful import abort
 import requests
@@ -7,15 +9,36 @@ from requests.exceptions import RequestException
 from .app import app
 
 
+class Session(requests.Session):
+
+    def __init__(self):
+        super().__init__()
+        self.base_url = os.environ['MICROAUTH_ENDPOINT_URL']
+        self.auth = (
+            os.environ['MICROAUTH_ACCESS_KEY_ID'],
+            os.environ['MICROAUTH_SECRET_ACCESS_KEY'],
+        )
+
+    def request(self, method, url, *args, **kwargs):
+        return super().request(
+            method,
+            urljoin(self.base_url, url),
+            *args,
+            **kwargs
+        )
+
+
+session = Session()
+
+
 def authorize_with_nothing(action, resource):
     return True
 
 
 def authorize_with_microauth(action, resource):
     try:
-        response = requests.post(
-            'http://microauth:5000/api/v1/authorize',
-            auth=(os.environ['MICROAUTH_ACCESS_KEY_ID'], os.environ['MICROAUTH_SECRET_ACCESS_KEY']),
+        response = session.post(
+            'authorize',
             json={
                 'action': action,
                 'resource': resource,

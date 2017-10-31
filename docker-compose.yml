@@ -32,6 +32,7 @@ services:
     - DATABASE_URI=postgres://agentless:agentless@postgres/agentless
     - MICROAUTH_ACCESS_KEY_ID=gatekeeper
     - MICROAUTH_SECRET_ACCESS_KEY=keymater
+    - MICROAUTH_ENDPOINT_URL=http://microauth:5000/api/v1/
     restart: always
 
   nginx:
