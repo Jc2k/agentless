@@ -11,14 +11,14 @@ services:
     volumes:
       - tinyauth_postgres_data_dev:/var/lib/postgresql/data
     environment:
-      - POSTGRES_USER=microauth
-      - POSTGRES_PASSWORD=microauth
-      - POSTGRES_DB=microauth
+      - POSTGRES_USER=tinyauth
+      - POSTGRES_PASSWORD=tinyauth
+      - POSTGRES_DB=tinyauth
 
-  microauth:
-    image: jc2k/tinyauth:dev
+  tinyauth:
+    image: tinyauth/tinyauth:dev
     depends_on:
-      - microauth_postgres
+      - tinyauth_postgres
     command: /gunicorn.sh
     user: flask
     environment:
@@ -49,7 +49,7 @@ services:
       - DATABASE_URI=postgres://agentless:agentless@postgres/agentless
       - TINYAUTH_ACCESS_KEY_ID=gatekeeper
       - TINYAUTH_SECRET_ACCESS_KEY=keymaster
-      - TINYAUTH_ENDPOINT_URL=http://microauth:5000/api/v1/
+      - TINYAUTH_ENDPOINT=http://tinyauth:5000/api/v1/
     volumes:
       - .:/app/src
     ports:
