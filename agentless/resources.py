@@ -64,11 +64,9 @@ class PrivateKeysResource(Resource):
         return build_response_for_request(PrivateKey, request, private_key_fields)
 
     def post(self):
-        authorize_or_401('CreateKey', 'key')
-
         args = private_key_parser.parse_args()
 
-        authorize('CreateKey', args['name'])
+        authorize_or_401('CreateKey', 'key', args['name'])
 
         private_key = PrivateKey(
             name=args['name'],

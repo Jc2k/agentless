@@ -1,13 +1,13 @@
-import unittest
-
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
 from agentless.crypto import generate_private_key
 from agentless.models import PrivateKey
 
+from .base import TestCase
 
-class TestModel(unittest.TestCase):
+
+class TestModel(TestCase):
 
     def test_public_key(self):
         private_key = PrivateKey(name='my-test-key', private_key=generate_private_key())
