@@ -2,10 +2,10 @@ import base64
 
 from flask import jsonify, request
 from flask_restful import Resource, abort, fields, marshal, reqparse
+from flask_tinyauth import authorize_or_401
 
 from agentless import crypto
 from agentless.app import api, app, db
-from agentless.auth import authorize
 from agentless.models import PrivateKey
 from agentless.simplerest import build_response_for_request
 
@@ -28,13 +28,13 @@ class PrivateKeyResource(Resource):
         return private_key
 
     def get(self, key_id):
-        authorize('GetKey', key_id)
+        authorize_or_401('GetKey', 'key', key_id)
 
         private_key = self._get_or_404(key_id)
         return jsonify(marshal(private_key, private_key_fields))
 
     def put(self, key_id):
-        authorize('UpdateKey', key_id)
+        authorize_or_401('UpdateKey', 'key', key_id)
 
         private_key = self._get_or_404(key_id)
 
@@ -49,7 +49,7 @@ class PrivateKeyResource(Resource):
         return jsonify(marshal(private_key, private_key_fields))
 
     def delete(self, key_id):
-        authorize('DeleteKey', key_id)
+        authorize_or_401('DeleteKey', 'key', key_id)
 
         private_key = self._get_or_404(key_id)
         db.session.delete(private_key)
@@ -60,9 +60,12 @@ class PrivateKeyResource(Resource):
 class PrivateKeysResource(Resource):
 
     def get(self):
+        authorize_or_401('GetKey', 'key')
         return build_response_for_request(PrivateKey, request, private_key_fields)
 
     def post(self):
+        authorize_or_401('CreateKey', 'key')
+
         args = private_key_parser.parse_args()
 
         authorize('CreateKey', args['name'])
@@ -80,7 +83,7 @@ class PrivateKeysResource(Resource):
 
 @app.route('/api/v1/keys/<int:key_id>/sign', methods=['POST'])
 def sign_data(key_id):
-    authorize('SignData', key_id)
+    authorize_or_401('SignData', 'key', key_id)
 
     private_key = PrivateKey.query.filter(PrivateKey.id == key_id).first()
     if not private_key:

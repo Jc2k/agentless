@@ -30,9 +30,9 @@ services:
     - POSTGRES_USER=agentless
     - POSTGRES_PASSWORD=agentless
     - DATABASE_URI=postgres://agentless:agentless@postgres/agentless
-    - MICROAUTH_ACCESS_KEY_ID=gatekeeper
-    - MICROAUTH_SECRET_ACCESS_KEY=keymater
-    - MICROAUTH_ENDPOINT_URL=http://microauth:5000/api/v1/
+    - TINYAUTH_ACCESS_KEY_ID=gatekeeper
+    - TINYAUTH_SECRET_ACCESS_KEY=keymaster
+    - TINYAUTH_ENDPOINT_URL=http://tinyauth:5000/api/v1/
     restart: always
 
   nginx:
