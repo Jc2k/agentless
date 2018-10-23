@@ -22,3 +22,4 @@ RUN sed -i 's/\r//' /entrypoint.sh \
 WORKDIR /app/src
 
 ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/gunicorn.sh"]
