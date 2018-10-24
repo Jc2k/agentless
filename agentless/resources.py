@@ -79,7 +79,7 @@ class PrivateKeysResource(Resource):
         return jsonify(marshal(private_key, private_key_fields))
 
 
-@app.route('/api/v1/keys/<int:key_id>/sign', methods=['POST'])
+@app.route('/api/v1/keys/<string:key_id>/sign', methods=['POST'])
 def sign_data(key_id):
     authorize_or_401('SignData', 'key', key_id)
 
