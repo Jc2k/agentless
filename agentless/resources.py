@@ -81,15 +81,16 @@ class PrivateKeysResource(Resource):
 
 @app.route('/api/v1/keys/<string:key_id>/sign', methods=['POST'])
 def sign_data(key_id):
-    authorize_or_401('SignData', 'key', key_id)
+    parser = reqparse.RequestParser()
+    parser.add_argument('data', type=str, location='json', required=True)
+    parser.add_argument('context', type=dict, location='json', required=False)
+    args = parser.parse_args()
+
+    authorize_or_401('SignData', 'key', key_id, ctx=args.context)
 
     private_key = PrivateKey.query.filter(PrivateKey.id == key_id).first()
     if not private_key:
         abort(404, message=f'private_key {key_id} does not exist')
-
-    parser = reqparse.RequestParser()
-    parser.add_argument('data', type=str, location='json', required=True)
-    args = parser.parse_args()
 
     signature = base64.b64encode(private_key.sign(base64.b64decode(args['data']))).decode('utf-8')
 
