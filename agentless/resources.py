@@ -60,7 +60,7 @@ class PrivateKeyResource(Resource):
 class PrivateKeysResource(Resource):
 
     def get(self):
-        authorize_or_401('GetKey', 'key')
+        authorize_or_401('ListKeys', 'key')
         return build_response_for_request(PrivateKey, request, private_key_fields)
 
     def post(self):
