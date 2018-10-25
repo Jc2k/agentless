@@ -57,7 +57,7 @@ class TestCase(TestCase):
         data = json.dumps({"data": base64.b64encode(b"hello").decode('utf-8')})
 
         response = self.client.post(
-            f'/api/v1/keys/{payload["id"]}/sign',
+            f'/api/v1/keys/{payload["name"]}/sign',
             data=data,
             content_type='application/json',
         )
