@@ -22,7 +22,7 @@ private_key_parser.add_argument('name', type=str, location='json', required=True
 class PrivateKeyResource(Resource):
 
     def _get_or_404(self, key_id):
-        private_key = PrivateKey.query.filter(PrivateKey.id == key_id).first()
+        private_key = PrivateKey.query.filter(PrivateKey.name == key_id).first()
         if not private_key:
             abort(404, message=f'private_key {key_id} does not exist')
         return private_key
@@ -88,7 +88,7 @@ def sign_data(key_id):
 
     authorize_or_401('SignData', 'key', key_id, ctx=args.context)
 
-    private_key = PrivateKey.query.filter(PrivateKey.id == key_id).first()
+    private_key = PrivateKey.query.filter(PrivateKey.name == key_id).first()
     if not private_key:
         abort(404, message=f'private_key {key_id} does not exist')
 
