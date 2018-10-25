@@ -32,7 +32,7 @@ class PrivateKeyResource(Resource):
         parser.add_argument('context', type=dict, location='json', required=False)
         args = parser.parse_args()
 
-        authorize_or_401('GetKey', 'key', key_id, ctx)
+        authorize_or_401('GetKey', 'key', key_id, args.context)
 
         private_key = self._get_or_404(key_id)
         return jsonify(marshal(private_key, private_key_fields))
